@@ -12,20 +12,37 @@ export const verifyJWT = asyncHandler(async(req, _, next) => {
             throw new ApiError(401, "Unauthorized request")
         }
     
-        const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
+        const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+
+        console.log("Decoded Token:", decodedToken);
+        //
+        // const user = await User.findById(decodedToken._id).select("-password -refreshToken");
+        const user = await User.findById(decodedToken._id);
+        console.log("User found:", user);
+
+
+        if (!user) {
+            throw new ApiError(401, "User not found or token invalid");
+        }
+
+        req.user = user;
+        next();
+    } catch (error) {
+        console.error("JWT Verification Error:", error.message);
+        throw new ApiError(401, error?.message || "Invalid access token");
+    }
     
         //_id-(youtube) 
-        const user = await User.findById(decodedToken?._id).select("-password -refreshToken");
-
+    //     const user = await User.findById(decodedToken?._id).select("-password -refreshToken");
     
-        if (!user) {
-            throw new ApiError(401, "Invalid Access Token")
-        }
+    //     if (!user) {
+    //         throw new ApiError(401, "Invalid Access Token")
+    //     }
     
-        req.user = user;
-        next()
-    } catch (error) {
-        throw new ApiError(401, error?.message || "Invalid access token")
-    }
+    //     req.user = user;
+    //     next()
+    // } catch (error) {
+    //     throw new ApiError(401, error?.message || "Invalid access token")
+    // }
     
 })
